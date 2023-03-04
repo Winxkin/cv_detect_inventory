@@ -87,6 +87,16 @@ def change_id_object(classids_obj):
             classids_obj[index] = 1
     return
 
+#merge bouding box data from OOS and Obj
+def append_boxes(boxes_1,boxes_2):
+    boxes = []
+    for box in boxes_1:
+        boxes.append(box)
+
+    for box in boxes_2:
+        boxes.append(box)
+    return boxes
+
 #send SMS to phone
 def sendSMS(phone, msg):
     # Your Account Sid and Auth Token from twilio.com / console
@@ -109,16 +119,22 @@ def main():
     class_name = read_classes('class.txt')
     OOS_model = load_model_yolov4('yolov4-tiny-OOS.weights','yolov4-tiny-custom-OOS.cfg')
     #img = get_image_from_cam(0)
-    img = load_image_local('./test/OOS/img5.jpg')
+    img = load_image_local('./test/OOS/img1.jpg')
     classids_oos, scores_oos, boxes_oos = OOS_model.detect(img, Conf_threshold, NMS_threshold)
-    _class, _scores, _box = OOS_model.detect(img, Conf_threshold, NMS_threshold)
-    change_id_object(_class)
-    #classids_oos.extend(_class)
+    classids_obj, scores_obj, boxes_obj = OOS_model.detect(img, Conf_threshold, NMS_threshold)
+    change_id_object(classids_obj)
+
+    #append detection beweent object and OOS
+    classids = np.append(classids_oos,classids_obj)
+    scores = np.append(scores_oos,scores_obj)
+    boxes = append_boxes(boxes_oos,boxes_obj)
     
-    print(classids_oos)
-    print(_scores)
-    print(_box)
-    get_detection(class_name,classids_oos,scores_oos,boxes_oos,img)
+
+    print(classids)
+    print(scores)
+    print(boxes)
+    
+    get_detection(class_name,classids_oos,scores_oos,boxes,img)
     empty_total = len(classids_oos)
     print("total empty position : " + str(empty_total))
     #sendSMS(Huan_phone,'Shelf 101 had out of stock with ' + str(empty_total) +' slots empty')
@@ -137,5 +153,5 @@ def test():
 
 
 if __name__ == "__main__":
-    test()
-    #main()
+    #test()
+    main()
