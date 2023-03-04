@@ -60,23 +60,38 @@ def load_image_local(link):
 
 #get target from model detect and return amount of object
 def get_detection(class_name,classids, scores, boxes, *img):
-    amount = 0
+    count = 0
     for (classid, score, box) in zip(classids, scores, boxes):
-        cv.rectangle(*img,(box[0],box[1]), (box[0] + box[2],box[1] + box[3]),
-        color=(0, 0, 255),thickness=2)
-        label = "%s : %f" % (class_name[classid],score)
-        cv.putText(*img, label,(box[0], box[1]-5), cv.FONT_HERSHEY_SIMPLEX, 1,
-        color=(0, 0, 255) ,thickness=2)
-        amount = amount + 1
+        #check if class is oos
+        if classid == 0:
+            cv.rectangle(*img,(box[0],box[1]), (box[0] + box[2],box[1] + box[3]),
+            color=(0, 0, 255),thickness=2)
+            label = "%s" % (class_name[classid])
+            cv.putText(*img, label,(box[0], box[1]-5), cv.FONT_HERSHEY_PLAIN, 1,
+            color=(0, 0, 255) ,thickness=2)
+        
+        #check if class is in-stock
+        if classid == 1:
+            cv.rectangle(*img,(box[0],box[1]), (box[0] + box[2],box[1] + box[3]),
+            color=(0, 255, 0),thickness=2)
+            label = "%s" % (class_name[classid])
+            cv.putText(*img, label,(box[0], box[1]-5), cv.FONT_HERSHEY_PLAIN, 1,
+            color=(0, 255, 0) ,thickness=2)
 
-    print("total empty position: " + str(amount))
-    return amount
+    return
+
+#change id in list id of class object from 0 -> 1
+def change_id_object(classids_obj):
+    for index,id in enumerate(classids_obj):
+        if classids_obj[index] == 0:
+            classids_obj[index] = 1
+    return
 
 #send SMS to phone
 def sendSMS(phone, msg):
     # Your Account Sid and Auth Token from twilio.com / console
     account_sid = 'ACf4c77bd7c8472817692e7b5313c0cb8b'
-    auth_token = '8aed6b0fb5cf7f6835fb0adc0c92ed85'
+    auth_token = '9bb84200df110c0b90b557769bcf0120'
     _client = Client(account_sid, auth_token)
     message = _client.messages.create(
                               from_='+15673716123',
@@ -92,17 +107,21 @@ def sendSMS(phone, msg):
 def main():
     print("running...")
     class_name = read_classes('class.txt')
-    my_model = load_model_yolov4('yolov4-tiny-custom_best.weights','yolov4-tiny-custom.cfg')
+    OOS_model = load_model_yolov4('yolov4-tiny-OOS.weights','yolov4-tiny-custom-OOS.cfg')
     #img = get_image_from_cam(0)
-    img = load_image_local('./test/OOS/img1.jpg')
-    classids, scores, boxes = my_model.detect(img, Conf_threshold, NMS_threshold)
-    print(classids)
-    print(boxes)
-    print(scores)
-    count = get_detection(class_name,classids,scores,boxes,img)
-
-    #print("total empty position" + amount)
+    img = load_image_local('./test/OOS/img5.jpg')
+    classids_oos, scores_oos, boxes_oos = OOS_model.detect(img, Conf_threshold, NMS_threshold)
+    _class, _scores, _box = OOS_model.detect(img, Conf_threshold, NMS_threshold)
+    change_id_object(_class)
+    #classids_oos.extend(_class)
     
+    print(classids_oos)
+    print(_scores)
+    print(_box)
+    get_detection(class_name,classids_oos,scores_oos,boxes_oos,img)
+    empty_total = len(classids_oos)
+    print("total empty position : " + str(empty_total))
+    #sendSMS(Huan_phone,'Shelf 101 had out of stock with ' + str(empty_total) +' slots empty')
     cv.imwrite('test.jpg',img)
 
     #loop
@@ -111,7 +130,10 @@ def main():
 def test():
     print("test ^^")
     #sendSMS(Huan_phone,'Shelf 101 had out of stock with 7 slots empty')
-    
+    a = [1,2]
+    b = [3,4]
+    a.extend(b)
+    print(a)
 
 
 if __name__ == "__main__":
