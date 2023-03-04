@@ -10,6 +10,7 @@ ERROR = -1
 #define threadhold
 Conf_threshold = 0.3
 NMS_threshold = 0.4
+COLORS = [(0, 255, 0)]
 
 #function will read all class name in class_file and return a list[]
 def read_classes(class_file):
@@ -27,7 +28,7 @@ def load_model_yolov4(weights,cfg):
     net = cv.dnn.readNet(weights,cfg)
     #set handle with cuda
     net.setPreferableBackend(cv.dnn.DNN_BACKEND_CUDA)
-    net.setPreferableTarget(cv.dnn.DNN_TARGET_CUDA_FP16)
+    net.setPreferableTarget(cv.dnn.DNN_TARGET_CUDA)
     model = cv.dnn_DetectionModel(net)
     model.setInputParams(size=(416, 416), scale=1/255, swapRB=True)
     print("loading model: " + weights +" with " + cfg)
@@ -50,19 +51,36 @@ def load_image_local(link):
     image = cv.imread(link)
     return image
 
+#get target from model detect and return amount of object
+def get_detection(class_name,classids, scores, boxes, *img):
+    amount = 0
+    for (classid, score, box) in zip(classids, scores, boxes):
+        cv.rectangle(*img,(box[0],box[1]), (box[0] + box[2],box[1] + box[3]),
+        color=(0, 255, 0),thickness=2)
+        label = "%s : %f" % (class_name[classid],score)
+        cv.putText(*img, label,(box[0], box[1]-5), cv.FONT_HERSHEY_SIMPLEX, 1,
+        color=(0, 255, 0) ,thickness=2)
+        amount = amount + 1
+
+    print("total empty position: " + str(amount))
+    return amount
 
 #main function begin here
 def main():
     print("running...")
+    class_name = read_classes('class.txt')
     my_model = load_model_yolov4('yolov4-tiny-custom_best.weights','yolov4-tiny-custom.cfg')
-    img = get_image_from_cam(0)
-    img = load_image_local('./test/OOS/img2.jpg')
-    classes, score, box = my_model.detect(img, Conf_threshold, NMS_threshold)
-    print(classes)
-    print(box)
-    print(score)
-    #cv.imshow(img)
-    #cv.imwrite('test.jpg',img)
+    #img = get_image_from_cam(0)
+    img = load_image_local('./test/OOS/img5.jpg')
+    classids, scores, boxes = my_model.detect(img, Conf_threshold, NMS_threshold)
+    print(classids)
+    print(boxes)
+    print(scores)
+    get_detection(class_name,classids,scores,boxes,img)
+
+    #print("total empty position" + amount)
+    
+    cv.imwrite('test.jpg',img)
 
     #loop
     #while True:
