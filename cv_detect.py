@@ -3,6 +3,9 @@ import time
 import cv2 as cv
 from cv2 import *
 import numpy as np
+import firebase_admin as firebase
+from twilio.rest import Client
+
 
 #define
 ERROR = -1
@@ -11,6 +14,10 @@ ERROR = -1
 Conf_threshold = 0.3
 NMS_threshold = 0.4
 COLORS = [(0, 255, 0)]
+
+#SMS
+Huan_phone = '+84866078421'
+
 
 #function will read all class name in class_file and return a list[]
 def read_classes(class_file):
@@ -65,6 +72,22 @@ def get_detection(class_name,classids, scores, boxes, *img):
     print("total empty position: " + str(amount))
     return amount
 
+#send SMS to phone
+def sendSMS(phone, msg):
+    # Your Account Sid and Auth Token from twilio.com / console
+    account_sid = 'ACf4c77bd7c8472817692e7b5313c0cb8b'
+    auth_token = '8aed6b0fb5cf7f6835fb0adc0c92ed85'
+    _client = Client(account_sid, auth_token)
+    message = _client.messages.create(
+                              from_='+15673716123',
+                              body = msg,
+                              to = phone
+                          )
+  
+    print(message.sid)
+    return
+
+
 #main function begin here
 def main():
     print("running...")
@@ -85,8 +108,12 @@ def main():
     #loop
     #while True:
         
-
+def test():
+    print("test ^^")
+    #sendSMS(Huan_phone,'Shelf 101 had out of stock with 7 slots empty')
+    
 
 
 if __name__ == "__main__":
-    main()
+    test()
+    #main()
