@@ -56,10 +56,10 @@ def get_detection(class_name,classids, scores, boxes, *img):
     amount = 0
     for (classid, score, box) in zip(classids, scores, boxes):
         cv.rectangle(*img,(box[0],box[1]), (box[0] + box[2],box[1] + box[3]),
-        color=(0, 255, 0),thickness=2)
+        color=(0, 0, 255),thickness=2)
         label = "%s : %f" % (class_name[classid],score)
         cv.putText(*img, label,(box[0], box[1]-5), cv.FONT_HERSHEY_SIMPLEX, 1,
-        color=(0, 255, 0) ,thickness=2)
+        color=(0, 0, 255) ,thickness=2)
         amount = amount + 1
 
     print("total empty position: " + str(amount))
@@ -71,12 +71,12 @@ def main():
     class_name = read_classes('class.txt')
     my_model = load_model_yolov4('yolov4-tiny-custom_best.weights','yolov4-tiny-custom.cfg')
     #img = get_image_from_cam(0)
-    img = load_image_local('./test/OOS/img5.jpg')
+    img = load_image_local('./test/OOS/img1.jpg')
     classids, scores, boxes = my_model.detect(img, Conf_threshold, NMS_threshold)
     print(classids)
     print(boxes)
     print(scores)
-    get_detection(class_name,classids,scores,boxes,img)
+    count = get_detection(class_name,classids,scores,boxes,img)
 
     #print("total empty position" + amount)
     
