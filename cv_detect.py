@@ -61,25 +61,33 @@ def load_image_local(link):
 
 #get target from model detect and return amount of object
 def get_detection(class_name,classids, scores, boxes, *img):
-    count = 0
     for (classid, score, box) in zip(classids, scores, boxes):
         #check if class is oos
         if classid == 0:
             cv.rectangle(*img,(box[0],box[1]), (box[0] + box[2],box[1] + box[3]),
             color=(0, 0, 255),thickness=2)
             label = "%s" % (class_name[classid])
-            cv.putText(*img, label,(box[0], box[1]-5), cv.FONT_HERSHEY_PLAIN, 1,
-            color=(0, 0, 255) ,thickness=1)
+            #cv.putText(*img, label,(box[0], box[1]-5), cv.FONT_HERSHEY_PLAIN, 1,
+            #color=(0, 0, 255) ,thickness=1)
         
         #check if class is in-stock
         if classid == 1:
             cv.rectangle(*img,(box[0],box[1]), (box[0] + box[2],box[1] + box[3]),
-            color=(0, 255, 0),thickness=2)
+            color=(0, 255, 0),thickness=1)
             label = "%s" % (class_name[classid])
-            cv.putText(*img, label,(box[0], box[1]-5), cv.FONT_HERSHEY_PLAIN, 1,
-            color=(0, 255, 0) ,thickness=1)
+            #cv.putText(*img, label,(box[0], box[1]-5), cv.FONT_HERSHEY_PLAIN, 1,
+            #color=(0, 255, 0) ,thickness=1)
 
     return
+
+#get sum area bouding box of class in a picture
+def get_area_boxes(boxes):
+    sum = 0
+    for(box) in zip(boxes):
+        weigh = box[0][2]
+        high = box[0][3]
+        sum = sum + (weigh*high)
+    return sum
 
 #change id in list id of class object from 0 -> 1
 def change_id_object(classids_obj):
@@ -157,8 +165,8 @@ def main():
 
         #get total of in-stock and OOS
         empty_total = len(classids_oos)
-        obj_total = len(classids_obj)
-        #state_shelf = (obj_total)/(empty_total + obj_total)
+        obj_total = len(classids_obj)       
+        state_shelf = get_area_boxes(boxes_obj)/(get_area_boxes(boxes_obj) + get_area_boxes(boxes_oos))
 
         #append detection beweent object and OOS
         classids = np.append(classids_oos,classids_obj)
@@ -166,20 +174,25 @@ def main():
         boxes = append_boxes(boxes_oos,boxes_obj)
 
         #print classes id are detected
-        print('classes id:')
-        print(classids)
-
+        #print('classes id:')
+        #print(classids)
+        #print('socres:')
+        #print(scores)
+        #print('position:')
+        #print(boxes)
+        
         #draw bouding box in image
         get_detection(class_name,classids,scores,boxes,img)
 
         #log total position
         print("total empty position : " + str(empty_total))
         print("total obj position : " + str(obj_total))
-        #print("state of shelf: " + str(state_shelf) + '%')
+        print("avalible on shelf: " + str("{:.2f}".format(state_shelf)) + '%')
 
         #sendSMS(Huan_phone,'Shelf 101 had out of stock with ' + str(empty_total) +' slots empty')
         cv.imwrite('test.jpg',img)
-        delay_secconds(10)
+        break
+        #delay_secconds(10)
     #end loop
     print('Stopping cv_detect_inventory.')
     return   
