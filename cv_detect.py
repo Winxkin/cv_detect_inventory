@@ -112,6 +112,12 @@ def sendSMS(phone, msg):
     print(message.sid)
     return
 
+#delay for x secconds
+def delay_secconds(secconds):
+    for s in range(secconds):
+        time.sleep(1) #sleep in 1 seccond
+        print("waitting....." + str(s) +"s")
+    return
 
 #main function begin here
 def main():
@@ -119,42 +125,45 @@ def main():
     class_name = read_classes('class.txt')
     OOS_model = load_model_yolov4('yolov4-tiny-OOS.weights','yolov4-tiny-custom-OOS.cfg')
     obj_model = load_model_yolov4('yolov4-tiny-obj.weights','yolov4-tiny-custom-obj.cfg')
-    #img = get_image_from_cam(0)
-    img = load_image_local('./test/OOS/img15.jpg')
-    classids_oos, scores_oos, boxes_oos = OOS_model.detect(img, Conf_threshold, NMS_threshold)
-    classids_obj, scores_obj, boxes_obj = obj_model.detect(img, Conf_threshold, NMS_threshold)
-    change_id_object(classids_obj)
 
-    #get total of in-stock and OOS
-    empty_total = len(classids_oos)
-    obj_total = len(classids_obj)
-    #state_shelf = (obj_total)/(empty_total + obj_total)
+    #while loop
+    while True:
+        #img = get_image_from_cam(0)
+        img = load_image_local('./test/OOS/img15.jpg')
+        classids_oos, scores_oos, boxes_oos = OOS_model.detect(img, Conf_threshold, NMS_threshold)
+        classids_obj, scores_obj, boxes_obj = obj_model.detect(img, Conf_threshold, NMS_threshold)
+        change_id_object(classids_obj)
 
-    #append detection beweent object and OOS
-    classids = np.append(classids_oos,classids_obj)
-    scores = np.append(scores_oos,scores_obj)
-    boxes = append_boxes(boxes_oos,boxes_obj)
+        #get total of in-stock and OOS
+        empty_total = len(classids_oos)
+        obj_total = len(classids_obj)
+        #state_shelf = (obj_total)/(empty_total + obj_total)
 
-    #print classes id are detected
-    print('classes id:')
-    print(classids)
+        #append detection beweent object and OOS
+        classids = np.append(classids_oos,classids_obj)
+        scores = np.append(scores_oos,scores_obj)
+        boxes = append_boxes(boxes_oos,boxes_obj)
 
-    #draw bouding box in image
-    get_detection(class_name,classids,scores,boxes,img)
+        #print classes id are detected
+        print('classes id:')
+        print(classids)
 
-    #log total position
-    print("total empty position : " + str(empty_total))
-    print("total obj position : " + str(obj_total))
-    #print("state of shelf: " + str(state_shelf) + '%')
+        #draw bouding box in image
+        get_detection(class_name,classids,scores,boxes,img)
 
-    #sendSMS(Huan_phone,'Shelf 101 had out of stock with ' + str(empty_total) +' slots empty')
-    cv.imwrite('test.jpg',img)
+        #log total position
+        print("total empty position : " + str(empty_total))
+        print("total obj position : " + str(obj_total))
+        #print("state of shelf: " + str(state_shelf) + '%')
 
-    #loop
-    #while True:
+        #sendSMS(Huan_phone,'Shelf 101 had out of stock with ' + str(empty_total) +' slots empty')
+        cv.imwrite('test.jpg',img)
+        delay_secconds(10)
+    #end loop
+    
         
 def test():
-    
+    delay_secconds(10)
     return
 
 if __name__ == "__main__":
