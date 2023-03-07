@@ -189,7 +189,8 @@ def main():
         print("total obj position : " + str(obj_total))
         print("avalible on shelf: " + str("{:.2f}".format(state_shelf)) + '%')
 
-        #sendSMS(Huan_phone,'Shelf 101 had out of stock with ' + str(empty_total) +' slots empty')
+        sendSMS(Huan_phone,'Shelf 101 had out of stock with ' + str(empty_total) +' slots empty.'
+                'Avalible on shelf ' + str("{:.2f}".format(state_shelf)) + '%')
         cv.imwrite('test.jpg',img)
         break
         #delay_secconds(10)
