@@ -1,5 +1,6 @@
 import os 
 import time
+import argparse
 import cv2 as cv
 from cv2 import *
 import numpy as np
@@ -44,7 +45,7 @@ def load_model_yolov4(weights,cfg):
 #capture image input from camera or load image from storge
 #note: /dev/video0 => videox = 0
 def get_image_from_cam(videox):
-    cam = VideoCapture(videox)
+    cam = cv.VideoCapture(videox)
     result, image = cam.read()
     if result:
         print("capture image from camera success")
@@ -66,17 +67,17 @@ def get_detection(class_name,classids, scores, boxes, *img):
         if classid == 0:
             cv.rectangle(*img,(box[0],box[1]), (box[0] + box[2],box[1] + box[3]),
             color=(0, 0, 255),thickness=2)
-            #label = "%s" % (class_name[classid])
-            #cv.putText(*img, label,(box[0], box[1]-5), cv.FONT_HERSHEY_PLAIN, 1,
-            #color=(0, 0, 255) ,thickness=2)
+            label = "%s" % (class_name[classid])
+            cv.putText(*img, label,(box[0], box[1]-5), cv.FONT_HERSHEY_PLAIN, 1,
+            color=(0, 0, 255) ,thickness=1)
         
         #check if class is in-stock
         if classid == 1:
             cv.rectangle(*img,(box[0],box[1]), (box[0] + box[2],box[1] + box[3]),
             color=(0, 255, 0),thickness=2)
-            #label = "%s" % (class_name[classid])
-            #cv.putText(*img, label,(box[0], box[1]-5), cv.FONT_HERSHEY_PLAIN, 1,
-            #color=(0, 255, 0) ,thickness=2)
+            label = "%s" % (class_name[classid])
+            cv.putText(*img, label,(box[0], box[1]-5), cv.FONT_HERSHEY_PLAIN, 1,
+            color=(0, 255, 0) ,thickness=1)
 
     return
 
@@ -121,15 +122,35 @@ def delay_secconds(secconds):
 
 #main function begin here
 def main():
-    print("running...")
+    #add argument
+    parser = argparse.ArgumentParser(description='project cv detection inventory.')
+    parser.add_argument('--img',help='detect with input is image, directory at cv_detect_inventory/test/OOS')
+    parser.add_argument('--cam',help='detect with input is camera, example: video0 -> 0')
+    args = parser.parse_args()
+    
+    #begin detection coding
+    print("cv_detect_inventory running...")
+    #load model and get class name
     class_name = read_classes('class.txt')
     OOS_model = load_model_yolov4('yolov4-tiny-OOS.weights','yolov4-tiny-custom-OOS.cfg')
     obj_model = load_model_yolov4('yolov4-tiny-obj.weights','yolov4-tiny-custom-obj.cfg')
 
     #while loop
     while True:
-        #img = get_image_from_cam(0)
-        img = load_image_local('./test/OOS/img15.jpg')
+        if args.cam != None:
+            print('start detect with video' + str(args.cam) + "...")
+            img = get_image_from_cam(args.cam)
+            #if failed
+            if img == ERROR:
+                break
+        
+        elif args.img != None:
+            print("start detect with " + str(args.img) + "...")
+            img = load_image_local("./test/OOS/" + str(args.img))
+        else:
+            print("can't not detect without input")
+            break
+
         classids_oos, scores_oos, boxes_oos = OOS_model.detect(img, Conf_threshold, NMS_threshold)
         classids_obj, scores_obj, boxes_obj = obj_model.detect(img, Conf_threshold, NMS_threshold)
         change_id_object(classids_obj)
@@ -160,8 +181,10 @@ def main():
         cv.imwrite('test.jpg',img)
         delay_secconds(10)
     #end loop
-    
-        
+    print('Stopping cv_detect_inventory.')
+    return   
+
+#function test     
 def test():
     delay_secconds(10)
     return
