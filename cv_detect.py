@@ -176,9 +176,9 @@ def main():
         change_id_object(classids_obj)
 
         #get total of in-stock and OOS
-        empty_total = len(classids_oos)
-        obj_total = len(classids_obj)       
-        state_shelf = get_area_boxes(boxes_obj)/(get_area_boxes(boxes_obj) + get_area_boxes(boxes_oos))
+        OOS = len(classids_oos)
+        In_stock = len(classids_obj)       
+        avalible = "{:.2f}".format(get_area_boxes(boxes_obj)/(get_area_boxes(boxes_obj) + get_area_boxes(boxes_oos)))
 
         #append detection beweent object and OOS
         classids = np.append(classids_oos,classids_obj)
@@ -197,12 +197,12 @@ def main():
         get_detection(class_name,classids,scores,boxes,img)
 
         #log total position
-        print("total empty position : " + str(empty_total))
-        print("total obj position : " + str(obj_total))
-        print("avalible on shelf: " + str("{:.2f}".format(state_shelf)) + '%')
+        print("total empty position : " + str(OOS))
+        print("total obj position : " + str(In_stock))
+        print("avalible on shelf: " + str(avalible) + '%')
         
         #post data to firebase
-        post_to_firebase(empty_total,obj_total,"{:.2f}".format(state_shelf))
+        post_to_firebase(OOS,In_stock,avalible)
         
         cv.imwrite('test.jpg',img)
         break
