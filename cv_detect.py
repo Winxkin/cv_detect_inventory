@@ -7,6 +7,7 @@ import numpy as np
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import _http_client
+from firebase_admin import storage, firestore
 from firebase_admin import db
 from twilio.rest import Client
 from zalo.sdk.app import ZaloAppInfo, Zalo3rdAppClient
@@ -124,20 +125,36 @@ def delay_secconds(secconds):
         print("waitting....." + str(s) +"s")
     return
 
-#connecting to firebase realtime
-def post_to_firebase(OOS,In_stock,avalible):
+#connect to firebase
+def connect_to_firebase():
     cred = credentials.Certificate("./inventory-firebase.json")
     firebase_admin.initialize_app(cred, {
-        'databaseURL' : 'https://inventory-16459-default-rtdb.asia-southeast1.firebasedatabase.app/'
+        'databaseURL' : 'https://inventory-16459-default-rtdb.asia-southeast1.firebasedatabase.app/',
+        'storageBucket' : 'inventory-16459.appspot.com'
     })
+    return
+
+#connecting to firebase realtime
+def post_to_firebaserealtime(OOS,In_stock,avalible,img_name):
     ref = db.reference('/')
     ref.set({
         'Shelf' : {
             'OOS' : OOS,
             'In-stock' : In_stock,
             'In-stock_avalivle' : avalible,
+            'img_output' : img_name
         }
     })
+    return
+
+#update image to firebase storage
+def upload_to_firebaseStorage(img_name):  
+    db = firestore.client()
+    bucket = storage.bucket()
+    blob = bucket.blob(img_name)
+    outfile = './' + img_name
+    with open(outfile,'rb') as my_file:
+        blob.upload_from_file(my_file)
     return
 
 #main function begin here
@@ -175,36 +192,32 @@ def main():
         classids_obj, scores_obj, boxes_obj = obj_model.detect(img, Conf_threshold, NMS_threshold)
         change_id_object(classids_obj)
 
-        #get total of in-stock and OOS
-        OOS = len(classids_oos)
-        In_stock = len(classids_obj)       
-        avalible = "{:.2f}".format(get_area_boxes(boxes_obj)/(get_area_boxes(boxes_obj) + get_area_boxes(boxes_oos)))
-
         #append detection beweent object and OOS
         classids = np.append(classids_oos,classids_obj)
         scores = np.append(scores_oos,scores_obj)
         boxes = append_boxes(boxes_oos,boxes_obj)
 
-        #print classes id are detected
-        #print('classes id:')
-        #print(classids)
-        #print('socres:')
-        #print(scores)
-        #print('position:')
-        #print(boxes)
         
         #draw bouding box in image
         get_detection(class_name,classids,scores,boxes,img)
 
+        #get total of in-stock and OOS
+        OOS = len(classids_oos)
+        In_stock = len(classids_obj)       
+        avalible = "{:.2f}".format(get_area_boxes(boxes_obj)/(get_area_boxes(boxes_obj) + get_area_boxes(boxes_oos)))
         #log total position
         print("total empty position : " + str(OOS))
         print("total obj position : " + str(In_stock))
         print("avalible on shelf: " + str(avalible) + '%')
-        
-        #post data to firebase
-        post_to_firebase(OOS,In_stock,avalible)
-        
-        cv.imwrite('test.jpg',img)
+           
+        #save image output
+        image_name = 'result.jpg'
+        cv.imwrite(image_name,img)
+
+         #post data to firebase
+        connect_to_firebase()
+        post_to_firebaserealtime(OOS,In_stock,avalible,image_name)
+        upload_to_firebaseStorage(image_name)
         break
         #delay_secconds(10)
     #end loop
