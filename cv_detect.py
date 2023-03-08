@@ -4,9 +4,12 @@ import argparse
 import cv2 as cv
 from cv2 import *
 import numpy as np
-import firebase_admin as firebase
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import _http_client
+from firebase_admin import db
 from twilio.rest import Client
-
+from zalo.sdk.app import ZaloAppInfo, Zalo3rdAppClient
 
 #define
 ERROR = -1
@@ -15,9 +18,6 @@ ERROR = -1
 Conf_threshold = 0.3
 NMS_threshold = 0.4
 COLORS = [(0, 255, 0)]
-
-#SMS
-Huan_phone = '+84866078421'
 
 
 #function will read all class name in class_file and return a list[]
@@ -106,19 +106,15 @@ def append_boxes(boxes_1,boxes_2):
         boxes.append(box)
     return boxes
 
-#send SMS to phone
-def sendSMS(phone, msg):
-    # Your Account Sid and Auth Token from twilio.com / console
-    account_sid = 'ACf4c77bd7c8472817692e7b5313c0cb8b'
-    auth_token = '9bb84200df110c0b90b557769bcf0120'
-    _client = Client(account_sid, auth_token)
-    message = _client.messages.create(
-                              from_='+15673716123',
-                              body = msg,
-                              to = phone
-                          )
-  
-    print(message.sid)
+#send zalo sms to phone
+def zalo_SMS(user_id, msg):
+    zalo_info = ZaloAppInfo(app_id="your app id", secret_key="your app secret")
+    zalo_3rd_app_client = Zalo3rdAppClient(zalo_info)
+    send_message = zalo_3rd_app_client.post('/me/message', token, {
+    'message': msg,
+    'to': user_id,
+    'link': 'https://developers.zalo.me/'
+    })
     return
 
 #delay for x secconds
@@ -126,6 +122,22 @@ def delay_secconds(secconds):
     for s in range(secconds):
         time.sleep(1) #sleep in 1 seccond
         print("waitting....." + str(s) +"s")
+    return
+
+#connecting to firebase realtime
+def post_to_firebase(OOS,In_stock,avalible):
+    cred = credentials.Certificate("./inventory-firebase.json")
+    firebase_admin.initialize_app(cred, {
+        'databaseURL' : 'https://inventory-16459-default-rtdb.asia-southeast1.firebasedatabase.app/'
+    })
+    ref = db.reference('/')
+    ref.set({
+        'Shelf' : {
+            'OOS' : OOS,
+            'In-stock' : In_stock,
+            'In-stock_avalivle' : avalible,
+        }
+    })
     return
 
 #main function begin here
@@ -188,9 +200,10 @@ def main():
         print("total empty position : " + str(empty_total))
         print("total obj position : " + str(obj_total))
         print("avalible on shelf: " + str("{:.2f}".format(state_shelf)) + '%')
-
-        sendSMS(Huan_phone,'Shelf 101 had out of stock with ' + str(empty_total) +' slots empty.'
-                'Avalible on shelf ' + str("{:.2f}".format(state_shelf)) + '%')
+        
+        #post data to firebase
+        post_to_firebase(empty_total,obj_total,"{:.2f}".format(state_shelf))
+        
         cv.imwrite('test.jpg',img)
         break
         #delay_secconds(10)
@@ -200,7 +213,7 @@ def main():
 
 #function test     
 def test():
-    delay_secconds(10)
+    
     return
 
 if __name__ == "__main__":
