@@ -159,7 +159,7 @@ def connect_to_firebase():
 #***********************************************************************
 def post_to_firebaserealtime(OOS,In_stock,avalible,img_name):
     ref = db.reference('/')
-    ref.set({
+    ref.update({
         'Shelf' : {
             'OOS' : OOS,
             'In-stock' : In_stock,
