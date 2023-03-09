@@ -20,8 +20,9 @@ Conf_threshold = 0.3
 NMS_threshold = 0.4
 COLORS = [(0, 255, 0)]
 
-
+#***********************************************************************
 #function will read all class name in class_file and return a list[]
+#***********************************************************************
 def read_classes(class_file):
     #Read class name from class.txt and save to array class
     class_name = []
@@ -30,8 +31,10 @@ def read_classes(class_file):
     print(class_name)
     return class_name
 
+#***********************************************************************
 #function use to load model yolov4 to detect
 #return model
+#***********************************************************************
 def load_model_yolov4(weights,cfg):
     #load model yolov4
     net = cv.dnn.readNet(weights,cfg)
@@ -43,8 +46,10 @@ def load_model_yolov4(weights,cfg):
     print("loading model: " + weights +" with " + cfg)
     return model
 
+#***********************************************************************
 #capture image input from camera or load image from storge
 #note: /dev/video0 => videox = 0
+#***********************************************************************
 def get_image_from_cam(videox):
     cam = cv.VideoCapture(videox)
     result, image = cam.read()
@@ -55,12 +60,16 @@ def get_image_from_cam(videox):
         print("capture image from camera failed !")
         return ERROR
 
+#***********************************************************************
 #load image test from stogre
+#***********************************************************************
 def load_image_local(link):
     image = cv.imread(link)
     return image
 
+#***********************************************************************
 #get target from model detect and return amount of object
+#***********************************************************************
 def get_detection(class_name,classids, scores, boxes, *img):
     for (classid, score, box) in zip(classids, scores, boxes):
         #check if class is oos
@@ -81,7 +90,9 @@ def get_detection(class_name,classids, scores, boxes, *img):
 
     return
 
+#***********************************************************************
 #get sum area bouding box of class in a picture
+#***********************************************************************
 def get_area_boxes(boxes):
     sum = 0
     for(box) in zip(boxes):
@@ -90,14 +101,18 @@ def get_area_boxes(boxes):
         sum = sum + (weigh*high)
     return sum
 
+#***********************************************************************
 #change id in list id of class object from 0 -> 1
+#***********************************************************************
 def change_id_object(classids_obj):
     for index,id in enumerate(classids_obj):
         if classids_obj[index] == 0:
             classids_obj[index] = 1
     return
 
+#***********************************************************************
 #merge bouding box data from OOS and Obj
+#***********************************************************************
 def append_boxes(boxes_1,boxes_2):
     boxes = []
     for box in boxes_1:
@@ -107,7 +122,9 @@ def append_boxes(boxes_1,boxes_2):
         boxes.append(box)
     return boxes
 
+#***********************************************************************
 #send zalo sms to phone
+#***********************************************************************
 def zalo_SMS(user_id, msg):
     zalo_info = ZaloAppInfo(app_id="your app id", secret_key="your app secret")
     zalo_3rd_app_client = Zalo3rdAppClient(zalo_info)
@@ -118,14 +135,18 @@ def zalo_SMS(user_id, msg):
     })
     return
 
+#***********************************************************************
 #delay for x secconds
+#***********************************************************************
 def delay_secconds(secconds):
     for s in range(secconds):
         time.sleep(1) #sleep in 1 seccond
         print("waitting....." + str(s) +"s")
     return
 
+#***********************************************************************
 #connect to firebase
+#***********************************************************************
 def connect_to_firebase():
     cred = credentials.Certificate("./inventory-firebase.json")
     firebase_admin.initialize_app(cred, {
@@ -134,7 +155,9 @@ def connect_to_firebase():
     })
     return
 
+#***********************************************************************
 #connecting to firebase realtime
+#***********************************************************************
 def post_to_firebaserealtime(OOS,In_stock,avalible,img_name):
     ref = db.reference('/')
     ref.set({
@@ -147,7 +170,9 @@ def post_to_firebaserealtime(OOS,In_stock,avalible,img_name):
     })
     return
 
+#***********************************************************************
 #update image to firebase storage
+#***********************************************************************
 def upload_to_firebaseStorage(img_name):  
     db = firestore.client()
     bucket = storage.bucket()
@@ -156,8 +181,10 @@ def upload_to_firebaseStorage(img_name):
     with open(outfile,'rb') as my_file:
         blob.upload_from_file(my_file)
     return
-
+    
+#*************************
 #main function begin here
+#*************************
 def main():
     #add argument
     parser = argparse.ArgumentParser(description='project cv detection inventory.')
