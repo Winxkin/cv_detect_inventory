@@ -18,7 +18,6 @@ ERROR = -1
 #define threadhold
 Conf_threshold = 0.3
 NMS_threshold = 0.4
-COLORS = [(0, 255, 0)]
 
 #***********************************************************************
 #function will read all class name in class_file and return a list[]
@@ -181,7 +180,7 @@ def upload_to_firebaseStorage(img_name):
     with open(outfile,'rb') as my_file:
         blob.upload_from_file(my_file)
     return
-    
+
 #*************************
 #main function begin here
 #*************************
@@ -245,6 +244,8 @@ def main():
         connect_to_firebase()
         post_to_firebaserealtime(OOS,In_stock,avalible,image_name)
         upload_to_firebaseStorage(image_name)
+
+        #watting to next capture...
         break
         #delay_secconds(10)
     #end loop
