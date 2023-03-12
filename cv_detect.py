@@ -202,6 +202,7 @@ def main():
     OOS_model = load_model_yolov4('yolov4-tiny-OOS.weights','yolov4-tiny-custom-OOS.cfg')
     obj_model = load_model_yolov4('yolov4-tiny-obj.weights','yolov4-tiny-custom-obj.cfg')
     connect_to_firebase()
+    img_count = 0
     #while loop
     while True:
         if args.cam != None:
@@ -213,7 +214,9 @@ def main():
         
         elif args.img != None:
             print("start detect with " + str(args.img) + "...")
-            img = load_image_local("./test/OOS/" + str(args.img))
+            #img = load_image_local("./test/OOS/" + str(args.img))
+            img = load_image_local('./test/OOS/img' + str(img_count) + '.jpg')
+            print('./test/OOS/img' + str(img_count) + '.jpg')
         else:
             print("can't not detect without input")
             break
@@ -249,8 +252,13 @@ def main():
         upload_to_firebaseStorage(image_name)
 
         #watting to next capture...
-        break
-        #delay_secconds(10)
+        #break
+        if img_count == 11:
+            img_count = 0
+        else:
+            img_count = img_count + 1
+
+        delay_secconds(30)
     #end loop
     print('Stopping cv_detect_inventory.')
     return   
