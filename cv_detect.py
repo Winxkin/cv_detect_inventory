@@ -171,6 +171,7 @@ def post_to_firebaserealtime(OOS,In_stock,avalible,img_name):
             'time' : str(current_time)
         }
     })
+    print('post_to_firebaserealtime success')
     return
 
 #***********************************************************************
@@ -183,6 +184,8 @@ def upload_to_firebaseStorage(img_name):
     outfile = './' + img_name
     with open(outfile,'rb') as my_file:
         blob.upload_from_file(my_file)
+    
+    print("upload_to_firebaseStorage success.")
     return
 
 #*************************
@@ -248,9 +251,8 @@ def main():
         cv.imwrite(image_name,img)
 
         #post data to firebase
-        post_to_firebaserealtime(OOS,In_stock,avalible,image_name)
         upload_to_firebaseStorage(image_name)
-
+        post_to_firebaserealtime(OOS,In_stock,avalible,image_name)
         #watting to next capture...
         #break
         if img_count == 11:
