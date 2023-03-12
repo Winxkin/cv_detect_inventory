@@ -38,8 +38,8 @@ def load_model_yolov4(weights,cfg):
     #load model yolov4
     net = cv.dnn.readNet(weights,cfg)
     #set handle with cuda
-    net.setPreferableBackend(cv.dnn.DNN_BACKEND_CUDA)
-    net.setPreferableTarget(cv.dnn.DNN_TARGET_CUDA)
+    #net.setPreferableBackend(cv.dnn.DNN_BACKEND_CUDA)
+    #net.setPreferableTarget(cv.dnn.DNN_TARGET_CUDA)
     model = cv.dnn_DetectionModel(net)
     model.setInputParams(size=(416, 416), scale=1/255, swapRB=True)
     print("loading model: " + weights +" with " + cfg)
@@ -197,7 +197,7 @@ def main():
     class_name = read_classes('class.txt')
     OOS_model = load_model_yolov4('yolov4-tiny-OOS.weights','yolov4-tiny-custom-OOS.cfg')
     obj_model = load_model_yolov4('yolov4-tiny-obj.weights','yolov4-tiny-custom-obj.cfg')
-
+    connect_to_firebase()
     #while loop
     while True:
         if args.cam != None:
@@ -240,14 +240,13 @@ def main():
         image_name = 'result.jpg'
         cv.imwrite(image_name,img)
 
-         #post data to firebase
-        connect_to_firebase()
+        #post data to firebase
         post_to_firebaserealtime(OOS,In_stock,avalible,image_name)
         upload_to_firebaseStorage(image_name)
 
         #watting to next capture...
-        break
-        #delay_secconds(10)
+        #break
+        delay_secconds(10)
     #end loop
     print('Stopping cv_detect_inventory.')
     return   
