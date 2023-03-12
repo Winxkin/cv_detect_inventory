@@ -11,6 +11,7 @@ from firebase_admin import storage, firestore
 from firebase_admin import db
 from twilio.rest import Client
 from zalo.sdk.app import ZaloAppInfo, Zalo3rdAppClient
+from datetime import datetime
 
 #define
 ERROR = -1
@@ -159,12 +160,15 @@ def connect_to_firebase():
 #***********************************************************************
 def post_to_firebaserealtime(OOS,In_stock,avalible,img_name):
     ref = db.reference('/')
+    #get current time
+    current_time = datetime.now()
     ref.set({
         'Shelf' : {
             'OOS' : OOS,
             'In-stock' : In_stock,
             'In-stock_avalivle' : avalible,
-            'img_output' : img_name
+            'img_output' : img_name,
+            'time' : str(current_time)
         }
     })
     return
@@ -234,7 +238,7 @@ def main():
         #log total position
         print("total empty position : " + str(OOS))
         print("total obj position : " + str(In_stock))
-        print("avalible on shelf: " + str(avalible) + '%')
+        print("avalible on shelf: " + str(avalible) )
            
         #save image output
         image_name = 'result.jpg'
@@ -245,15 +249,16 @@ def main():
         upload_to_firebaseStorage(image_name)
 
         #watting to next capture...
-        #break
-        delay_secconds(10)
+        break
+        #delay_secconds(10)
     #end loop
     print('Stopping cv_detect_inventory.')
     return   
 
 #function test     
 def test():
-    
+    now =  datetime.now()
+    print(now)
     return
 
 if __name__ == "__main__":
