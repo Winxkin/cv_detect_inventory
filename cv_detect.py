@@ -39,8 +39,8 @@ def load_model_yolov4(weights,cfg):
     #load model yolov4
     net = cv.dnn.readNet(weights,cfg)
     #set handle with cuda
-    #net.setPreferableBackend(cv.dnn.DNN_BACKEND_CUDA)
-    #net.setPreferableTarget(cv.dnn.DNN_TARGET_CUDA)
+    net.setPreferableBackend(cv.dnn.DNN_BACKEND_CUDA)
+    net.setPreferableTarget(cv.dnn.DNN_TARGET_CUDA)
     model = cv.dnn_DetectionModel(net)
     model.setInputParams(size=(416, 416), scale=1/255, swapRB=True)
     print("loading model: " + weights +" with " + cfg)
