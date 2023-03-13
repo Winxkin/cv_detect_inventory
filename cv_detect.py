@@ -11,7 +11,7 @@ from firebase_admin import storage, firestore
 from firebase_admin import db
 from twilio.rest import Client
 from zalo.sdk.app import ZaloAppInfo, Zalo3rdAppClient
-from datetime import datetime
+from datetime import datetime,date
 
 #define
 ERROR = -1
@@ -161,17 +161,17 @@ def connect_to_firebase():
 def post_to_firebaserealtime(OOS,In_stock,avalible,img_name):
     ref = db.reference('/')
     #get current time
-    current_time = datetime.now()
     ref.set({
         'Shelf' : {
             'OOS' : OOS,
             'In-stock' : In_stock,
             'In-stock_avalivle' : avalible,
             'img_output' : img_name,
-            'time' : str(current_time)
+            'time' : str(datetime.now().strftime("%H:%M:%S")),
+            'date' : str(date.today().strftime("%b-%d-%Y"))
         }
     })
-    print('post_to_firebaserealtime success')
+    print('post_to_firebaserealtime')
     return
 
 #***********************************************************************
@@ -184,7 +184,7 @@ def upload_to_firebaseStorage(img_name):
     outfile = './' + img_name
     with open(outfile,'rb') as my_file:
         blob.upload_from_file(my_file)
-    
+
     print("upload_to_firebaseStorage success.")
     return
 
@@ -196,6 +196,7 @@ def main():
     parser = argparse.ArgumentParser(description='project cv detection inventory.')
     parser.add_argument('--img',help='detect with input is image, directory at cv_detect_inventory/test/OOS')
     parser.add_argument('--cam',help='detect with input is camera, example: video0 -> 0')
+    parser.add_argument('--loadauto',help='load auto image from ./test/OOS/img*.jpg | --loadauto 11 (load from img0 -> img11)')
     args = parser.parse_args()
     
     #begin detection coding
@@ -217,7 +218,9 @@ def main():
         
         elif args.img != None:
             print("start detect with " + str(args.img) + "...")
-            #img = load_image_local("./test/OOS/" + str(args.img))
+            img = load_image_local("./test/OOS/" + str(args.img))
+        elif args.loadauto != None:
+            print("start detect with image is loaded from ./test/OOS/")
             img = load_image_local('./test/OOS/img' + str(img_count) + '.jpg')
             print('./test/OOS/img' + str(img_count) + '.jpg')
         else:
@@ -252,23 +255,24 @@ def main():
 
         #post data to firebase
         upload_to_firebaseStorage(image_name)
+        #time.sleep(2)   #waitting for image update
         post_to_firebaserealtime(OOS,In_stock,avalible,image_name)
         #watting to next capture...
         #break
-        if img_count == 11:
+        if img_count == args.loadauto:
             img_count = 0
         else:
             img_count = img_count + 1
 
-        delay_secconds(30)
+        delay_secconds(10)
     #end loop
     print('Stopping cv_detect_inventory.')
     return   
 
 #function test     
 def test():
-    now =  datetime.now()
-    print(now)
+    day =  date.today().strftime("%b-%d-%Y")
+    time = datetime.now().strftime("%H:%M:%S")
     return
 
 if __name__ == "__main__":
