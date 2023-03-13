@@ -185,7 +185,7 @@ def upload_to_firebaseStorage(img_name):
     with open(outfile,'rb') as my_file:
         blob.upload_from_file(my_file)
 
-    print("upload_to_firebaseStorage success.")
+    print('upload_to_firebaseStorage success.')
     return
 
 #*************************
@@ -194,9 +194,9 @@ def upload_to_firebaseStorage(img_name):
 def main():
     #add argument
     parser = argparse.ArgumentParser(description='project cv detection inventory.')
-    parser.add_argument('--img',help='detect with input is image, directory at cv_detect_inventory/test/OOS')
+    parser.add_argument('--img',help='detect with input is image, directory at cv_detect_inventory/test/')
     parser.add_argument('--cam',help='detect with input is camera, example: video0 -> 0')
-    parser.add_argument('--loadauto',help='load auto image from ./test/OOS/img*.jpg | --loadauto 11 (load from img0 -> img11)')
+    parser.add_argument('--loadauto',help='load auto image from ./test/img*.jpg | --loadauto x (load from img0 -> imgx)')
     args = parser.parse_args()
     
     #begin detection coding
@@ -218,11 +218,15 @@ def main():
         
         elif args.img != None:
             print("start detect with " + str(args.img) + "...")
-            img = load_image_local("./test/OOS/" + str(args.img))
+            img = load_image_local("./test/" + str(args.img))
         elif args.loadauto != None:
-            print("start detect with image is loaded from ./test/OOS/")
-            img = load_image_local('./test/OOS/img' + str(img_count) + '.jpg')
-            print('./test/OOS/img' + str(img_count) + '.jpg')
+            print('start detect with ' + str(args.loadauto) + ' image is loaded from ./test/')
+            img = load_image_local('./test/img' + str(img_count) + '.jpg')
+            print('./test/img' + str(img_count) + '.jpg')
+            if img_count == int(args.loadauto):
+                img_count = 0
+            else:
+                img_count = img_count + 1
         else:
             print("can't not detect without input")
             break
@@ -259,11 +263,6 @@ def main():
         post_to_firebaserealtime(OOS,In_stock,avalible,image_name)
         #watting to next capture...
         #break
-        if img_count == args.loadauto:
-            img_count = 0
-        else:
-            img_count = img_count + 1
-
         delay_secconds(10)
     #end loop
     print('Stopping cv_detect_inventory.')
