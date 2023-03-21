@@ -9,8 +9,6 @@ from firebase_admin import credentials
 from firebase_admin import _http_client
 from firebase_admin import storage, firestore
 from firebase_admin import db
-from twilio.rest import Client
-from zalo.sdk.app import ZaloAppInfo, Zalo3rdAppClient
 from datetime import datetime,date
 
 #define
@@ -123,19 +121,6 @@ def append_boxes(boxes_1,boxes_2):
     return boxes
 
 #***********************************************************************
-#send zalo sms to phone
-#***********************************************************************
-def zalo_SMS(user_id, msg):
-    zalo_info = ZaloAppInfo(app_id="your app id", secret_key="your app secret")
-    zalo_3rd_app_client = Zalo3rdAppClient(zalo_info)
-    send_message = zalo_3rd_app_client.post('/me/message', token, {
-    'message': msg,
-    'to': user_id,
-    'link': 'https://developers.zalo.me/'
-    })
-    return
-
-#***********************************************************************
 #delay for x secconds
 #***********************************************************************
 def delay_secconds(secconds):
@@ -246,8 +231,12 @@ def main():
 
         #get total of in-stock and OOS
         OOS = len(classids_oos)
-        In_stock = len(classids_obj)       
-        avalible = "{:.2f}".format(get_area_boxes(boxes_obj)/(get_area_boxes(boxes_obj) + get_area_boxes(boxes_oos)))
+        In_stock = len(classids_obj)
+        if (get_area_boxes(boxes_obj)) != 0 and (get_area_boxes(boxes_oos) != 0):
+            avalible = "{:.2f}".format(get_area_boxes(boxes_obj)/(get_area_boxes(boxes_obj) + get_area_boxes(boxes_oos)))
+        else:
+            avalible = 0
+
         #log total position
         print("total empty position : " + str(OOS))
         print("total obj position : " + str(In_stock))
