@@ -189,7 +189,7 @@ def main():
     #load model and get class name
     class_name = read_classes('class.txt')
     OOS_model = load_model_yolov4('yolov4-tiny-OOS.weights','yolov4-tiny-custom-OOS.cfg')
-    obj_model = load_model_yolov4('yolov4-tiny-obj.weights','yolov4-tiny-custom-obj.cfg')
+    obj_model = load_model_yolov4('yolov4-tiny-3l-obj.weights','yolov4-tiny-3l-obj.cfg')
     connect_to_firebase()
     img_count = 0
     #while loop
