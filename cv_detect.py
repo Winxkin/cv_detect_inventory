@@ -74,7 +74,7 @@ def get_detection(class_name,classids, scores, boxes, *img):
         if classid == 0:
             cv.rectangle(*img,(box[0],box[1]), (box[0] + box[2],box[1] + box[3]),
             color=(0, 0, 255),thickness=2)
-            label = "%s" % (class_name[classid])
+            #label = "%s" % (class_name[classid])
             #cv.putText(*img, label,(box[0], box[1]-5), cv.FONT_HERSHEY_PLAIN, 1,
             #color=(0, 0, 255) ,thickness=1)
         
@@ -82,7 +82,7 @@ def get_detection(class_name,classids, scores, boxes, *img):
         if classid == 1:
             cv.rectangle(*img,(box[0],box[1]), (box[0] + box[2],box[1] + box[3]),
             color=(0, 255, 0),thickness=1)
-            label = "%s" % (class_name[classid])
+            #label = "%s" % (class_name[classid])
             #cv.putText(*img, label,(box[0], box[1]-5), cv.FONT_HERSHEY_PLAIN, 1,
             #color=(0, 255, 0) ,thickness=1)
 
@@ -188,8 +188,8 @@ def main():
     print("cv_detect_inventory running...")
     #load model and get class name
     class_name = read_classes('class.txt')
-    OOS_model = load_model_yolov4('yolov4-tiny-OOS.weights','yolov4-tiny-custom-OOS.cfg')
-    obj_model = load_model_yolov4('yolov4-tiny-3l-obj.weights','yolov4-tiny-3l-obj.cfg')
+    OOS_model = load_model_yolov4('yolov4-tiny-SPP_empty.weights','yolov4-tiny-SPP.cfg')
+    obj_model = load_model_yolov4('yolov4-tiny-G-3l_obj.weights','yolov4-tiny-G-3l.cfg')
     connect_to_firebase()
     img_count = 0
     #while loop
@@ -232,7 +232,7 @@ def main():
         #get total of in-stock and OOS
         OOS = len(classids_oos)
         In_stock = len(classids_obj)
-        if (get_area_boxes(boxes_obj)) != 0 and (get_area_boxes(boxes_oos) != 0):
+        if (get_area_boxes(boxes_obj)) != 0 or (get_area_boxes(boxes_oos) != 0):
             avalible = "{:.2f}".format(get_area_boxes(boxes_obj)/(get_area_boxes(boxes_obj) + get_area_boxes(boxes_oos)))
         else:
             avalible = 0
